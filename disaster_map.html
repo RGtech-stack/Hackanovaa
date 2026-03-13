@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_a47ecbbb8615fdeab6fff015fb7b59a0 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+</head>
+<body>
+    
+    
+    <div style='
+        position: fixed;
+        bottom: 30px; left: 20px;
+        z-index: 9999;
+        background: rgba(5,8,14,0.92);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-family: monospace;
+        font-size: 11px;
+        color: #c8d8e8;
+        backdrop-filter: blur(10px);
+        min-width: 180px;
+    '>
+        <div style='color:#00e5ff;font-weight:bold;letter-spacing:3px;
+                    font-size:10px;margin-bottom:10px;'>MAP LEGEND</div>
+        <div style='margin:5px 0;'>🌊 &nbsp;<span style='color:#29b6f6;'>Flood Zone</span></div>
+        <div style='margin:5px 0;'>⚠️ &nbsp;<span style='color:#FF1744;'>Danger Zone</span></div>
+        <div style='margin:5px 0;'>🆘 &nbsp;<span style='color:#FF1744;'>SOS Signal</span></div>
+        <div style='margin:5px 0;'>🏪 &nbsp;<span style='color:#00E676;'>Vendor / Supply</span></div>
+        <div style='margin:5px 0;'>🚁 &nbsp;<span style='color:#00E5FF;'>Drone</span></div>
+        <hr style='border-color:rgba(255,255,255,0.1);margin:8px 0;'>
+        <div style='margin:5px 0;'>
+            <span style='color:#00E676;'>━━━</span> Safe Route
+        </div>
+        <div style='margin:5px 0;'>
+            <span style='color:#FFD600;'>╌╌╌</span> Caution Route
+        </div>
+        <div style='margin:5px 0;'>
+            <span style='color:#FF1744;'>┄┄┄</span> Blocked Route
+        </div>
+        <hr style='border-color:rgba(255,255,255,0.1);margin:8px 0;'>
+        <div style='color:#888;font-size:9px;letter-spacing:1px;'>CLICK ANY MARKER FOR DETAILS</div>
+    </div>
+    
+    
+    <div style='
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 9999;
+        background: rgba(5,8,14,0.95);
+        border-bottom: 1px solid rgba(0,229,255,0.2);
+        padding: 10px 20px;
+        font-family: monospace;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    '>
+        <span style='color:#00e5ff;font-weight:bold;font-size:16px;
+                     letter-spacing:4px;text-shadow:0 0 12px #00e5ff88;'>
+            DURN
+        </span>
+        <span style='color:rgba(255,255,255,0.3);'>|</span>
+        <span style='color:#FF1744;font-size:11px;letter-spacing:2px;'>
+            ⚠ FLOOD ALERT ACTIVE
+        </span>
+        <span style='color:rgba(255,255,255,0.3);'>|</span>
+        <span style='color:#aaa;font-size:10px;'>
+            🌊 Floods: 5 &nbsp;
+            🆘 SOS: 5 &nbsp;
+            🏪 Vendors: 5 &nbsp;
+            🚁 Drones: 3
+        </span>
+    </div>
+    
+    
+            <div class="folium-map" id="map_a47ecbbb8615fdeab6fff015fb7b59a0" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_a47ecbbb8615fdeab6fff015fb7b59a0 = L.map(
+                "map_a47ecbbb8615fdeab6fff015fb7b59a0",
+                {
+                    center: [19.076, 72.877],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+            L.control.scale().addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+
+            
+
+        
+    
+            var tile_layer_9c58b169c711fe22813cbc8719eb8690 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_9c58b169c711fe22813cbc8719eb8690.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var feature_group_330d6299c8ec1acf4315756e231abfad = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var heat_map_4f8cb68ed0e8e4d3e0918912cf33e43d = L.heatLayer(
+                [[19.076, 72.8777, 1.0], [19.055, 72.835, 0.7], [19.12, 72.9, 0.4], [19.033, 72.855, 0.7], [19.168, 72.948, 1.0]],
+                {
+  "minOpacity": 0.3,
+  "maxZoom": 16,
+  "radius": 40,
+  "blur": 25,
+  "gradient": {
+  0.2: "#29b6f6",
+  0.5: "#FF6D00",
+  0.8: "#FF1744",
+},
+}
+            );
+        
+    
+            heat_map_4f8cb68ed0e8e4d3e0918912cf33e43d.addTo(feature_group_330d6299c8ec1acf4315756e231abfad);
+        
+    
+            var feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var poly_line_7407187ef6f5ebb27bee34c68a7d66e5 = L.polyline(
+                [[19.06, 72.84], [19.068, 72.858], [19.075, 72.878]],
+                {"bubblingMouseEvents": true, "color": "#00E676", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#00E676", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.85, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+        var popup_54bb5f3c0db0b49842d85054d15693ea = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_8ac4bb34161da667a24d2e46a4196ce2 = $(`<div id="html_8ac4bb34161da667a24d2e46a4196ce2" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#00E676;font-size:14px;'>                     🟢 ROUTE — CLEAR                   </b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Route 1 — SV Road (CLEAR)</b><br>                   Note: Passable — water < 20cm                 </div>                 </div>`)[0];
+                popup_54bb5f3c0db0b49842d85054d15693ea.setContent(html_8ac4bb34161da667a24d2e46a4196ce2);
+            
+        
+
+        poly_line_7407187ef6f5ebb27bee34c68a7d66e5.bindPopup(popup_54bb5f3c0db0b49842d85054d15693ea)
+        ;
+
+        
+    
+    
+            poly_line_7407187ef6f5ebb27bee34c68a7d66e5.bindTooltip(
+                `<div>
+                     🟢 Route 1 — SV Road (CLEAR)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_bacfc79f3d7c2f5c13187965b6cc905b = L.marker(
+                [19.068, 72.858],
+                {
+}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+            var div_icon_041eac63a701b732a488d289255b9b4b = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    background:#00E67622;\n                    border:1px solid #00E676;\n                    color:#00E676;\n                    font-family:monospace;\n                    font-size:9px;\n                    letter-spacing:1px;\n                    padding:2px 6px;\n                    border-radius:3px;\n                    white-space:nowrap;\n                \u0027\u003eCLEAR\u003c/div\u003e\n            ",
+  "iconSize": [60, 18],
+  "iconAnchor": [30, 9],
+  "className": "empty",
+});
+        
+    
+                marker_bacfc79f3d7c2f5c13187965b6cc905b.setIcon(div_icon_041eac63a701b732a488d289255b9b4b);
+            
+    
+            var poly_line_7e74d53e7ef2da71e1ab51e11f4edb6b = L.polyline(
+                [[19.08, 72.895], [19.12, 72.92], [19.16, 72.948]],
+                {"bubblingMouseEvents": true, "color": "#00E676", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#00E676", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.85, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+        var popup_6214bb7688be9026ac1ad7856a490ff1 = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_4ab0fb999d32a350c39416d5eb5b4355 = $(`<div id="html_4ab0fb999d32a350c39416d5eb5b4355" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#00E676;font-size:14px;'>                     🟢 ROUTE — CLEAR                   </b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Route 2 — Eastern Express Hwy (CLEAR)</b><br>                   Note: Elevated — fully safe                 </div>                 </div>`)[0];
+                popup_6214bb7688be9026ac1ad7856a490ff1.setContent(html_4ab0fb999d32a350c39416d5eb5b4355);
+            
+        
+
+        poly_line_7e74d53e7ef2da71e1ab51e11f4edb6b.bindPopup(popup_6214bb7688be9026ac1ad7856a490ff1)
+        ;
+
+        
+    
+    
+            poly_line_7e74d53e7ef2da71e1ab51e11f4edb6b.bindTooltip(
+                `<div>
+                     🟢 Route 2 — Eastern Express Hwy (CLEAR)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_b5e34761671fca50d7619f2672424d25 = L.marker(
+                [19.12, 72.92],
+                {
+}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+            var div_icon_2d9bd4993daf72dd7d2d665869a4c741 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    background:#00E67622;\n                    border:1px solid #00E676;\n                    color:#00E676;\n                    font-family:monospace;\n                    font-size:9px;\n                    letter-spacing:1px;\n                    padding:2px 6px;\n                    border-radius:3px;\n                    white-space:nowrap;\n                \u0027\u003eCLEAR\u003c/div\u003e\n            ",
+  "iconSize": [60, 18],
+  "iconAnchor": [30, 9],
+  "className": "empty",
+});
+        
+    
+                marker_b5e34761671fca50d7619f2672424d25.setIcon(div_icon_2d9bd4993daf72dd7d2d665869a4c741);
+            
+    
+            var poly_line_c740c9f3dfc4cc589df4f2c96aa1ba7f = L.polyline(
+                [[19.12, 72.9], [19.14, 72.92], [19.165, 72.942]],
+                {"bubblingMouseEvents": true, "color": "#FFD600", "dashArray": "8 5", "dashOffset": null, "fill": false, "fillColor": "#FFD600", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.85, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+        var popup_7062db90bee18d3cdd6e9c579a2cf913 = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_4b1b9dd68a5f9d73fd787d4409295dee = $(`<div id="html_4b1b9dd68a5f9d73fd787d4409295dee" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FFD600;font-size:14px;'>                     🟡 ROUTE — CAUTION                   </b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Route 3 — LBS Marg (CAUTION)</b><br>                   Note: 1ft water — slow vehicles only                 </div>                 </div>`)[0];
+                popup_7062db90bee18d3cdd6e9c579a2cf913.setContent(html_4b1b9dd68a5f9d73fd787d4409295dee);
+            
+        
+
+        poly_line_c740c9f3dfc4cc589df4f2c96aa1ba7f.bindPopup(popup_7062db90bee18d3cdd6e9c579a2cf913)
+        ;
+
+        
+    
+    
+            poly_line_c740c9f3dfc4cc589df4f2c96aa1ba7f.bindTooltip(
+                `<div>
+                     🟡 Route 3 — LBS Marg (CAUTION)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_273b7cb46480d2316198d02d216d5c1d = L.marker(
+                [19.14, 72.92],
+                {
+}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+            var div_icon_1689fa2a8801cbd872dcaa58e194ed93 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    background:#FFD60022;\n                    border:1px solid #FFD600;\n                    color:#FFD600;\n                    font-family:monospace;\n                    font-size:9px;\n                    letter-spacing:1px;\n                    padding:2px 6px;\n                    border-radius:3px;\n                    white-space:nowrap;\n                \u0027\u003eCAUTION\u003c/div\u003e\n            ",
+  "iconSize": [60, 18],
+  "iconAnchor": [30, 9],
+  "className": "empty",
+});
+        
+    
+                marker_273b7cb46480d2316198d02d216d5c1d.setIcon(div_icon_1689fa2a8801cbd872dcaa58e194ed93);
+            
+    
+            var poly_line_532f68f551fdd2919556c1fd14e267a5 = L.polyline(
+                [[19.055, 72.85], [19.048, 72.857], [19.045, 72.865]],
+                {"bubblingMouseEvents": true, "color": "#FF1744", "dashArray": "4 8", "dashOffset": null, "fill": false, "fillColor": "#FF1744", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.85, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+        var popup_b0e5782dccbbdbd3bfd22f3dec7046ed = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_71bc5cd08dd3ab85f92c23c40bbd47ec = $(`<div id="html_71bc5cd08dd3ab85f92c23c40bbd47ec" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FF1744;font-size:14px;'>                     🔴 ROUTE — BLOCKED                   </b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Route 4 — Cadell Road (BLOCKED)</b><br>                   Note: 3.2ft water — cars blocked, boat only                 </div>                 </div>`)[0];
+                popup_b0e5782dccbbdbd3bfd22f3dec7046ed.setContent(html_71bc5cd08dd3ab85f92c23c40bbd47ec);
+            
+        
+
+        poly_line_532f68f551fdd2919556c1fd14e267a5.bindPopup(popup_b0e5782dccbbdbd3bfd22f3dec7046ed)
+        ;
+
+        
+    
+    
+            poly_line_532f68f551fdd2919556c1fd14e267a5.bindTooltip(
+                `<div>
+                     🔴 Route 4 — Cadell Road (BLOCKED)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_fc88c2f3fa431301e65e88dcc58742e4 = L.marker(
+                [19.048, 72.857],
+                {
+}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+            var div_icon_2e3a1ff03fef7a155541d55a1b4aa4dd = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    background:#FF174422;\n                    border:1px solid #FF1744;\n                    color:#FF1744;\n                    font-family:monospace;\n                    font-size:9px;\n                    letter-spacing:1px;\n                    padding:2px 6px;\n                    border-radius:3px;\n                    white-space:nowrap;\n                \u0027\u003eBLOCKED\u003c/div\u003e\n            ",
+  "iconSize": [60, 18],
+  "iconAnchor": [30, 9],
+  "className": "empty",
+});
+        
+    
+                marker_fc88c2f3fa431301e65e88dcc58742e4.setIcon(div_icon_2e3a1ff03fef7a155541d55a1b4aa4dd);
+            
+    
+            var poly_line_a5ad772782841d8d28e5b6e1554d4146 = L.polyline(
+                [[19.155, 72.94], [19.163, 72.948], [19.17, 72.955]],
+                {"bubblingMouseEvents": true, "color": "#FF1744", "dashArray": "4 8", "dashOffset": null, "fill": false, "fillColor": "#FF1744", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.85, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+        var popup_7883a9c383b976bb971e3397bb0a0087 = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_b4cb2ee172003050529e48310f2125fa = $(`<div id="html_b4cb2ee172003050529e48310f2125fa" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FF1744;font-size:14px;'>                     🔴 ROUTE — BLOCKED                   </b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Route 5 — Ghatkopar Corridor (BLOCKED)</b><br>                   Note: Drone-only zone — fully submerged                 </div>                 </div>`)[0];
+                popup_7883a9c383b976bb971e3397bb0a0087.setContent(html_b4cb2ee172003050529e48310f2125fa);
+            
+        
+
+        poly_line_a5ad772782841d8d28e5b6e1554d4146.bindPopup(popup_7883a9c383b976bb971e3397bb0a0087)
+        ;
+
+        
+    
+    
+            poly_line_a5ad772782841d8d28e5b6e1554d4146.bindTooltip(
+                `<div>
+                     🔴 Route 5 — Ghatkopar Corridor (BLOCKED)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_c5511f2509e4085a0881f2d2a9edb7b4 = L.marker(
+                [19.163, 72.948],
+                {
+}
+            ).addTo(feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6);
+        
+    
+            var div_icon_abf4a9c39d10c2c1621457745ca8c0fa = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    background:#FF174422;\n                    border:1px solid #FF1744;\n                    color:#FF1744;\n                    font-family:monospace;\n                    font-size:9px;\n                    letter-spacing:1px;\n                    padding:2px 6px;\n                    border-radius:3px;\n                    white-space:nowrap;\n                \u0027\u003eBLOCKED\u003c/div\u003e\n            ",
+  "iconSize": [60, 18],
+  "iconAnchor": [30, 9],
+  "className": "empty",
+});
+        
+    
+                marker_c5511f2509e4085a0881f2d2a9edb7b4.setIcon(div_icon_abf4a9c39d10c2c1621457745ca8c0fa);
+            
+    
+            feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var feature_group_8e7a36e5ad34580e7dbd49a8617d87f3 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var circle_91246c4f071f6cf802c063fde302ae10 = L.circle(
+                [19.076, 72.8777],
+                {"bubblingMouseEvents": true, "color": "#FF1744", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF1744", "fillOpacity": 0.12, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 0.7, "radius": 420, "stroke": true, "weight": 2}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+        var popup_45797e8c60d76372f92bf209c21cc57d = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_f82c6a8f2b12561fe7d170ffa570b447 = $(`<div id="html_f82c6a8f2b12561fe7d170ffa570b447" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF1744;font-size:14px;'>🌊 FLOOD ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Dharavi</b><br>                   Severity: <b style='color:#FF1744;'>CRITICAL</b><br>                   Depth: <b>128 cm</b><br>                   <small style='color:#888;'>19.0760, 72.8777</small>                 </div>                 </div>`)[0];
+                popup_45797e8c60d76372f92bf209c21cc57d.setContent(html_f82c6a8f2b12561fe7d170ffa570b447);
+            
+        
+
+        circle_91246c4f071f6cf802c063fde302ae10.bindPopup(popup_45797e8c60d76372f92bf209c21cc57d)
+        ;
+
+        
+    
+    
+            circle_91246c4f071f6cf802c063fde302ae10.bindTooltip(
+                `<div>
+                     🌊 Dharavi — 128cm deep
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_85e9fc0a2888d790f14443d3f1ab1d5d = L.marker(
+                [19.076, 72.8777],
+                {
+}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+            var div_icon_5495911b11628bf204fc751f1e86ce28 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF174433;\n                    border:2px solid #FF1744;\n                    border-radius:50%;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #FF1744;\n                \u0027\u003e\ud83c\udf0a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+                marker_85e9fc0a2888d790f14443d3f1ab1d5d.setIcon(div_icon_5495911b11628bf204fc751f1e86ce28);
+            
+    
+            var circle_a01f6a978881c4a8e0f69644a7f4c546 = L.circle(
+                [19.055, 72.835],
+                {"bubblingMouseEvents": true, "color": "#FF6D00", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF6D00", "fillOpacity": 0.12, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 0.7, "radius": 280, "stroke": true, "weight": 2}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+        var popup_99cdd7012eed94f70854edc289dfa59c = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_3a722b1083e834d78a11ecb251d2d170 = $(`<div id="html_3a722b1083e834d78a11ecb251d2d170" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF6D00;font-size:14px;'>🌊 FLOOD ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Mahim Creek</b><br>                   Severity: <b style='color:#FF6D00;'>HIGH</b><br>                   Depth: <b>85 cm</b><br>                   <small style='color:#888;'>19.0550, 72.8350</small>                 </div>                 </div>`)[0];
+                popup_99cdd7012eed94f70854edc289dfa59c.setContent(html_3a722b1083e834d78a11ecb251d2d170);
+            
+        
+
+        circle_a01f6a978881c4a8e0f69644a7f4c546.bindPopup(popup_99cdd7012eed94f70854edc289dfa59c)
+        ;
+
+        
+    
+    
+            circle_a01f6a978881c4a8e0f69644a7f4c546.bindTooltip(
+                `<div>
+                     🌊 Mahim Creek — 85cm deep
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_493898515c098739dde64fe57ca892d0 = L.marker(
+                [19.055, 72.835],
+                {
+}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+            var div_icon_f10c05a5128ade1fcfc25ac889ac95c4 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF6D0033;\n                    border:2px solid #FF6D00;\n                    border-radius:50%;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #FF6D00;\n                \u0027\u003e\ud83c\udf0a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+                marker_493898515c098739dde64fe57ca892d0.setIcon(div_icon_f10c05a5128ade1fcfc25ac889ac95c4);
+            
+    
+            var circle_8aae2ce9be7470bedf23b4d3a78625d4 = L.circle(
+                [19.12, 72.9],
+                {"bubblingMouseEvents": true, "color": "#FFD600", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FFD600", "fillOpacity": 0.12, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 0.7, "radius": 180, "stroke": true, "weight": 2}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+        var popup_854fb50cb9d52456809e5f70dfc58c06 = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_afac88fad7b2080c9cd775a649f2eca3 = $(`<div id="html_afac88fad7b2080c9cd775a649f2eca3" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FFD600;font-size:14px;'>🌊 FLOOD ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Kurla East</b><br>                   Severity: <b style='color:#FFD600;'>MEDIUM</b><br>                   Depth: <b>37 cm</b><br>                   <small style='color:#888;'>19.1200, 72.9000</small>                 </div>                 </div>`)[0];
+                popup_854fb50cb9d52456809e5f70dfc58c06.setContent(html_afac88fad7b2080c9cd775a649f2eca3);
+            
+        
+
+        circle_8aae2ce9be7470bedf23b4d3a78625d4.bindPopup(popup_854fb50cb9d52456809e5f70dfc58c06)
+        ;
+
+        
+    
+    
+            circle_8aae2ce9be7470bedf23b4d3a78625d4.bindTooltip(
+                `<div>
+                     🌊 Kurla East — 37cm deep
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_d7f755777043f145ad802e55d45c7e0a = L.marker(
+                [19.12, 72.9],
+                {
+}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+            var div_icon_6ba09655f71a342b2e73be8a8abe071f = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FFD60033;\n                    border:2px solid #FFD600;\n                    border-radius:50%;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #FFD600;\n                \u0027\u003e\ud83c\udf0a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+                marker_d7f755777043f145ad802e55d45c7e0a.setIcon(div_icon_6ba09655f71a342b2e73be8a8abe071f);
+            
+    
+            var circle_a553a62f2344ca514a9f93b256eac47f = L.circle(
+                [19.033, 72.855],
+                {"bubblingMouseEvents": true, "color": "#FF6D00", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF6D00", "fillOpacity": 0.12, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 0.7, "radius": 280, "stroke": true, "weight": 2}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+        var popup_d58ef062355367b3bcdeb26ac46676b3 = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_20804f3ce137529c612e76eb997996f9 = $(`<div id="html_20804f3ce137529c612e76eb997996f9" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF6D00;font-size:14px;'>🌊 FLOOD ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Sion</b><br>                   Severity: <b style='color:#FF6D00;'>HIGH</b><br>                   Depth: <b>94 cm</b><br>                   <small style='color:#888;'>19.0330, 72.8550</small>                 </div>                 </div>`)[0];
+                popup_d58ef062355367b3bcdeb26ac46676b3.setContent(html_20804f3ce137529c612e76eb997996f9);
+            
+        
+
+        circle_a553a62f2344ca514a9f93b256eac47f.bindPopup(popup_d58ef062355367b3bcdeb26ac46676b3)
+        ;
+
+        
+    
+    
+            circle_a553a62f2344ca514a9f93b256eac47f.bindTooltip(
+                `<div>
+                     🌊 Sion — 94cm deep
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_49cc05047f73ac10f4d962b2e4c5d92c = L.marker(
+                [19.033, 72.855],
+                {
+}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+            var div_icon_6881b0871a4ebb33d6e4a3cf2310dcd7 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF6D0033;\n                    border:2px solid #FF6D00;\n                    border-radius:50%;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #FF6D00;\n                \u0027\u003e\ud83c\udf0a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+                marker_49cc05047f73ac10f4d962b2e4c5d92c.setIcon(div_icon_6881b0871a4ebb33d6e4a3cf2310dcd7);
+            
+    
+            var circle_af04d2800421ae34b3455aa800d8c708 = L.circle(
+                [19.168, 72.948],
+                {"bubblingMouseEvents": true, "color": "#FF1744", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#FF1744", "fillOpacity": 0.12, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 0.7, "radius": 420, "stroke": true, "weight": 2}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+        var popup_a1613d9313c246c4a547bace3694d70b = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_3fdfcef3f55e3c05802bb9f9f299ce4f = $(`<div id="html_3fdfcef3f55e3c05802bb9f9f299ce4f" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF1744;font-size:14px;'>🌊 FLOOD ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Ghatkopar West</b><br>                   Severity: <b style='color:#FF1744;'>CRITICAL</b><br>                   Depth: <b>152 cm</b><br>                   <small style='color:#888;'>19.1680, 72.9480</small>                 </div>                 </div>`)[0];
+                popup_a1613d9313c246c4a547bace3694d70b.setContent(html_3fdfcef3f55e3c05802bb9f9f299ce4f);
+            
+        
+
+        circle_af04d2800421ae34b3455aa800d8c708.bindPopup(popup_a1613d9313c246c4a547bace3694d70b)
+        ;
+
+        
+    
+    
+            circle_af04d2800421ae34b3455aa800d8c708.bindTooltip(
+                `<div>
+                     🌊 Ghatkopar West — 152cm deep
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_2fc60ca8e9a401a9c85885c5dab3290d = L.marker(
+                [19.168, 72.948],
+                {
+}
+            ).addTo(feature_group_8e7a36e5ad34580e7dbd49a8617d87f3);
+        
+    
+            var div_icon_fd7f2eb421039738e25d0fade22e3149 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF174433;\n                    border:2px solid #FF1744;\n                    border-radius:50%;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #FF1744;\n                \u0027\u003e\ud83c\udf0a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+                marker_2fc60ca8e9a401a9c85885c5dab3290d.setIcon(div_icon_fd7f2eb421039738e25d0fade22e3149);
+            
+    
+            feature_group_8e7a36e5ad34580e7dbd49a8617d87f3.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var feature_group_0a4d7ddc4556ea3a23dfc724d2737327 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var marker_14cd9878bb0281b2ed952adc03568f1f = L.marker(
+                [19.064, 72.862],
+                {
+}
+            ).addTo(feature_group_0a4d7ddc4556ea3a23dfc724d2737327);
+        
+    
+            var div_icon_e0f61f249ad8280181cf6983ae26cb6c = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF174433;\n                    border:2px solid #FF1744;\n                    border-radius:6px;\n                    width:36px; height:36px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 14px #FF1744;\n                    animation:blink 1s step-end infinite;\n                \u0027\u003e\u26a0\ufe0f\u003c/div\u003e\n            ",
+  "iconSize": [36, 36],
+  "iconAnchor": [18, 18],
+  "className": "empty",
+});
+        
+    
+        var popup_ce9c336d40fad19336994041eb1c9d80 = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_17dcdeee17e1a60427b2f7e422b7ecd3 = $(`<div id="html_17dcdeee17e1a60427b2f7e422b7ecd3" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF1744;font-size:14px;'>⚠️ DANGER ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Collapsed Bridge — DO NOT ENTER</b><br>                   Severity: <b style='color:#FF1744;'>CRITICAL</b><br>                   <small style='color:#888;'>19.0640, 72.8620</small>                 </div>                 </div>`)[0];
+                popup_ce9c336d40fad19336994041eb1c9d80.setContent(html_17dcdeee17e1a60427b2f7e422b7ecd3);
+            
+        
+
+        marker_14cd9878bb0281b2ed952adc03568f1f.bindPopup(popup_ce9c336d40fad19336994041eb1c9d80)
+        ;
+
+        
+    
+    
+            marker_14cd9878bb0281b2ed952adc03568f1f.bindTooltip(
+                `<div>
+                     ⚠️ Collapsed Bridge — DO NOT ENTER
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_14cd9878bb0281b2ed952adc03568f1f.setIcon(div_icon_e0f61f249ad8280181cf6983ae26cb6c);
+            
+    
+            var circle_764303d19f238a19ab430e406fb8f824 = L.circle(
+                [19.064, 72.862],
+                {"bubblingMouseEvents": true, "color": "#FF1744", "dashArray": "6 4", "dashOffset": null, "fill": true, "fillColor": "#FF1744", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 120, "stroke": true, "weight": 1}
+            ).addTo(feature_group_0a4d7ddc4556ea3a23dfc724d2737327);
+        
+    
+            var marker_9ce942c04af67b634148c7a5c0878725 = L.marker(
+                [19.14, 72.93],
+                {
+}
+            ).addTo(feature_group_0a4d7ddc4556ea3a23dfc724d2737327);
+        
+    
+            var div_icon_a53e5c8f18f3828bb843994697b9c799 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF174433;\n                    border:2px solid #FF1744;\n                    border-radius:6px;\n                    width:36px; height:36px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 14px #FF1744;\n                    animation:blink 1s step-end infinite;\n                \u0027\u003e\u26a0\ufe0f\u003c/div\u003e\n            ",
+  "iconSize": [36, 36],
+  "iconAnchor": [18, 18],
+  "className": "empty",
+});
+        
+    
+        var popup_30ca1e873f6216b61409cd19a8f98ceb = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_dd603adee38ff90bd7f9d26ed707806f = $(`<div id="html_dd603adee38ff90bd7f9d26ed707806f" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF1744;font-size:14px;'>⚠️ DANGER ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Live Wire in Floodwater</b><br>                   Severity: <b style='color:#FF1744;'>CRITICAL</b><br>                   <small style='color:#888;'>19.1400, 72.9300</small>                 </div>                 </div>`)[0];
+                popup_30ca1e873f6216b61409cd19a8f98ceb.setContent(html_dd603adee38ff90bd7f9d26ed707806f);
+            
+        
+
+        marker_9ce942c04af67b634148c7a5c0878725.bindPopup(popup_30ca1e873f6216b61409cd19a8f98ceb)
+        ;
+
+        
+    
+    
+            marker_9ce942c04af67b634148c7a5c0878725.bindTooltip(
+                `<div>
+                     ⚠️ Live Wire in Floodwater
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_9ce942c04af67b634148c7a5c0878725.setIcon(div_icon_a53e5c8f18f3828bb843994697b9c799);
+            
+    
+            var circle_3926bc3c32034f3ec6745afea5862a64 = L.circle(
+                [19.14, 72.93],
+                {"bubblingMouseEvents": true, "color": "#FF1744", "dashArray": "6 4", "dashOffset": null, "fill": true, "fillColor": "#FF1744", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 120, "stroke": true, "weight": 1}
+            ).addTo(feature_group_0a4d7ddc4556ea3a23dfc724d2737327);
+        
+    
+            var marker_faf706dffbcd7cd9e7eb0bb9f7fec7d9 = L.marker(
+                [19.048, 72.87],
+                {
+}
+            ).addTo(feature_group_0a4d7ddc4556ea3a23dfc724d2737327);
+        
+    
+            var div_icon_1c92e7e2318baa6fff113eabf815c589 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF6D0033;\n                    border:2px solid #FF6D00;\n                    border-radius:6px;\n                    width:36px; height:36px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 14px #FF6D00;\n                    animation:blink 1s step-end infinite;\n                \u0027\u003e\u26a0\ufe0f\u003c/div\u003e\n            ",
+  "iconSize": [36, 36],
+  "iconAnchor": [18, 18],
+  "className": "empty",
+});
+        
+    
+        var popup_22c581b58972d11a601245ff85b5f897 = L.popup({
+  "maxWidth": 220,
+});
+
+        
+            
+                var html_c096ca28ed8d7f8e0a54294215b4ba3d = $(`<div id="html_c096ca28ed8d7f8e0a54294215b4ba3d" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:180px;'>                   <b style='color:#FF6D00;font-size:14px;'>⚠️ DANGER ZONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Wall Collapse Risk</b><br>                   Severity: <b style='color:#FF6D00;'>HIGH</b><br>                   <small style='color:#888;'>19.0480, 72.8700</small>                 </div>                 </div>`)[0];
+                popup_22c581b58972d11a601245ff85b5f897.setContent(html_c096ca28ed8d7f8e0a54294215b4ba3d);
+            
+        
+
+        marker_faf706dffbcd7cd9e7eb0bb9f7fec7d9.bindPopup(popup_22c581b58972d11a601245ff85b5f897)
+        ;
+
+        
+    
+    
+            marker_faf706dffbcd7cd9e7eb0bb9f7fec7d9.bindTooltip(
+                `<div>
+                     ⚠️ Wall Collapse Risk
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_faf706dffbcd7cd9e7eb0bb9f7fec7d9.setIcon(div_icon_1c92e7e2318baa6fff113eabf815c589);
+            
+    
+            var circle_d22c0dabdc20c858b0125ff5e3de2eb0 = L.circle(
+                [19.048, 72.87],
+                {"bubblingMouseEvents": true, "color": "#FF6D00", "dashArray": "6 4", "dashOffset": null, "fill": true, "fillColor": "#FF6D00", "fillOpacity": 0.07, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 120, "stroke": true, "weight": 1}
+            ).addTo(feature_group_0a4d7ddc4556ea3a23dfc724d2737327);
+        
+    
+            feature_group_0a4d7ddc4556ea3a23dfc724d2737327.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var feature_group_cd8f975073f099401efb132ff1d5b163 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var marker_4507e5ede81b8fb1075a84df0cd1bf0c = L.marker(
+                [19.072, 72.872],
+                {
+}
+            ).addTo(feature_group_cd8f975073f099401efb132ff1d5b163);
+        
+    
+            var div_icon_492796d5a4b5a10fc10db2bd98b6d811 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:18px;\n                    background:#00E67622;\n                    border:2px solid #00E676;\n                    border-radius:6px;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 10px #00E676;\n                \u0027\u003e\ud83d\udc8a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+        var popup_d406df739f0a41034f149e9b5d08ce56 = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_b2a92877db4c7ac7bad5218527ddcb2d = $(`<div id="html_b2a92877db4c7ac7bad5218527ddcb2d" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#00E676;font-size:14px;'>💊 VENDOR — OPEN</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Khan Medical Store</b><br>                   Type: <b>Medical</b><br>                   Stock: <b>ORS×200, Insulin×15</b><br>                   <small style='color:#888;'>19.0720, 72.8720</small>                 </div>                 </div>`)[0];
+                popup_d406df739f0a41034f149e9b5d08ce56.setContent(html_b2a92877db4c7ac7bad5218527ddcb2d);
+            
+        
+
+        marker_4507e5ede81b8fb1075a84df0cd1bf0c.bindPopup(popup_d406df739f0a41034f149e9b5d08ce56)
+        ;
+
+        
+    
+    
+            marker_4507e5ede81b8fb1075a84df0cd1bf0c.bindTooltip(
+                `<div>
+                     💊 Khan Medical Store — OPEN
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_4507e5ede81b8fb1075a84df0cd1bf0c.setIcon(div_icon_492796d5a4b5a10fc10db2bd98b6d811);
+            
+    
+            var marker_91e0358aaccbdc15e8846ab2edf2df92 = L.marker(
+                [19.06, 72.85],
+                {
+}
+            ).addTo(feature_group_cd8f975073f099401efb132ff1d5b163);
+        
+    
+            var div_icon_a51c9d5acfa95bb0b97f2319d3b44565 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:18px;\n                    background:#00E67622;\n                    border:2px solid #00E676;\n                    border-radius:6px;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 10px #00E676;\n                \u0027\u003e\ud83c\udf71\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+        var popup_6c98c8ebe6c7da78b2ffd12e03af8945 = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_ddc6d85415817707071369a43f197e7f = $(`<div id="html_ddc6d85415817707071369a43f197e7f" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#00E676;font-size:14px;'>🍱 VENDOR — OPEN</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Shree Kirana</b><br>                   Type: <b>Food</b><br>                   Stock: <b>Rice 40kg, Water×300</b><br>                   <small style='color:#888;'>19.0600, 72.8500</small>                 </div>                 </div>`)[0];
+                popup_6c98c8ebe6c7da78b2ffd12e03af8945.setContent(html_ddc6d85415817707071369a43f197e7f);
+            
+        
+
+        marker_91e0358aaccbdc15e8846ab2edf2df92.bindPopup(popup_6c98c8ebe6c7da78b2ffd12e03af8945)
+        ;
+
+        
+    
+    
+            marker_91e0358aaccbdc15e8846ab2edf2df92.bindTooltip(
+                `<div>
+                     🍱 Shree Kirana — OPEN
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_91e0358aaccbdc15e8846ab2edf2df92.setIcon(div_icon_a51c9d5acfa95bb0b97f2319d3b44565);
+            
+    
+            var marker_503e9ae0822985b2c7caf71f380f202f = L.marker(
+                [19.13, 72.91],
+                {
+}
+            ).addTo(feature_group_cd8f975073f099401efb132ff1d5b163);
+        
+    
+            var div_icon_998fddfbdbe3d02bfa5bc99d01dc00df = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:18px;\n                    background:#00E67622;\n                    border:2px solid #00E676;\n                    border-radius:6px;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 10px #00E676;\n                \u0027\u003e\ud83d\udc8a\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+        var popup_c094b3b1d84dd669315f3f0d2befb8ef = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_a955e20d57e3f7b17f4b1e357fb967fc = $(`<div id="html_a955e20d57e3f7b17f4b1e357fb967fc" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#00E676;font-size:14px;'>💊 VENDOR — OPEN</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>City Pharmacy</b><br>                   Type: <b>Medical</b><br>                   Stock: <b>ORS×80, Paracetamol×200</b><br>                   <small style='color:#888;'>19.1300, 72.9100</small>                 </div>                 </div>`)[0];
+                popup_c094b3b1d84dd669315f3f0d2befb8ef.setContent(html_a955e20d57e3f7b17f4b1e357fb967fc);
+            
+        
+
+        marker_503e9ae0822985b2c7caf71f380f202f.bindPopup(popup_c094b3b1d84dd669315f3f0d2befb8ef)
+        ;
+
+        
+    
+    
+            marker_503e9ae0822985b2c7caf71f380f202f.bindTooltip(
+                `<div>
+                     💊 City Pharmacy — OPEN
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_503e9ae0822985b2c7caf71f380f202f.setIcon(div_icon_998fddfbdbe3d02bfa5bc99d01dc00df);
+            
+    
+            var marker_50a86d6c504b9b3e269bad024e9ca8a7 = L.marker(
+                [19.04, 72.865],
+                {
+}
+            ).addTo(feature_group_cd8f975073f099401efb132ff1d5b163);
+        
+    
+            var div_icon_f8e18dd01a93b7a06b0de9a4d30cea27 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:18px;\n                    background:#00E67622;\n                    border:2px solid #00E676;\n                    border-radius:6px;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 10px #00E676;\n                \u0027\u003e\ud83c\udf71\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+        var popup_6700b2950148960c19e12fb24f8306f4 = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_d0f941ab52d22e5154e25cb24c076336 = $(`<div id="html_d0f941ab52d22e5154e25cb24c076336" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#00E676;font-size:14px;'>🍱 VENDOR — OPEN</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Community Kitchen #3</b><br>                   Type: <b>Food</b><br>                   Stock: <b>Hot Meals×150</b><br>                   <small style='color:#888;'>19.0400, 72.8650</small>                 </div>                 </div>`)[0];
+                popup_6700b2950148960c19e12fb24f8306f4.setContent(html_d0f941ab52d22e5154e25cb24c076336);
+            
+        
+
+        marker_50a86d6c504b9b3e269bad024e9ca8a7.bindPopup(popup_6700b2950148960c19e12fb24f8306f4)
+        ;
+
+        
+    
+    
+            marker_50a86d6c504b9b3e269bad024e9ca8a7.bindTooltip(
+                `<div>
+                     🍱 Community Kitchen #3 — OPEN
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_50a86d6c504b9b3e269bad024e9ca8a7.setIcon(div_icon_f8e18dd01a93b7a06b0de9a4d30cea27);
+            
+    
+            var marker_d4205c4a24e6ad04560fcd8922ec1bba = L.marker(
+                [19.16, 72.94],
+                {
+}
+            ).addTo(feature_group_cd8f975073f099401efb132ff1d5b163);
+        
+    
+            var div_icon_1bd215edd263b421a42668690542b24c = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:18px;\n                    background:#55555522;\n                    border:2px solid #555555;\n                    border-radius:6px;\n                    width:34px; height:34px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 10px #555555;\n                \u0027\u003e\ud83d\udce6\u003c/div\u003e\n            ",
+  "iconSize": [34, 34],
+  "iconAnchor": [17, 17],
+  "className": "empty",
+});
+        
+    
+        var popup_f10fa60651d479eec3c97725f740f346 = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_764c2606409624ecb0d240eaa4de9ed7 = $(`<div id="html_764c2606409624ecb0d240eaa4de9ed7" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#555555;font-size:14px;'>📦 VENDOR — CLOSED</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Ghatkopar Medical Hub</b><br>                   Type: <b>Mixed</b><br>                   Stock: <b>Emergency Kits×30</b><br>                   <small style='color:#888;'>19.1600, 72.9400</small>                 </div>                 </div>`)[0];
+                popup_f10fa60651d479eec3c97725f740f346.setContent(html_764c2606409624ecb0d240eaa4de9ed7);
+            
+        
+
+        marker_d4205c4a24e6ad04560fcd8922ec1bba.bindPopup(popup_f10fa60651d479eec3c97725f740f346)
+        ;
+
+        
+    
+    
+            marker_d4205c4a24e6ad04560fcd8922ec1bba.bindTooltip(
+                `<div>
+                     📦 Ghatkopar Medical Hub — CLOSED
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d4205c4a24e6ad04560fcd8922ec1bba.setIcon(div_icon_1bd215edd263b421a42668690542b24c);
+            
+    
+            feature_group_cd8f975073f099401efb132ff1d5b163.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var feature_group_a0e51c0edc23b5290ba42db6df8cac62 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var marker_a28d3368831535e514b5edc4f641c848 = L.marker(
+                [19.085, 72.885],
+                {
+}
+            ).addTo(feature_group_a0e51c0edc23b5290ba42db6df8cac62);
+        
+    
+            var div_icon_ee21c56b8f491fd47925c0f54977ff0f = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#00E5FF22;\n                    border:2px solid #00E5FF;\n                    border-radius:50%;\n                    width:36px; height:36px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #00E5FF;\n                \u0027\u003e\ud83d\ude81\u003c/div\u003e\n            ",
+  "iconSize": [36, 36],
+  "iconAnchor": [18, 18],
+  "className": "empty",
+});
+        
+    
+        var popup_8d3b174f15b8d855f4010ad35463619f = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_99ea0ebb4b089ca8ccd25a25b8616642 = $(`<div id="html_99ea0ebb4b089ca8ccd25a25b8616642" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:200px;'>                   <b style='color:#00E5FF;font-size:14px;'>🚁 DRONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Drone Alpha</b><br>                   Status: <b>Delivering → SOS-A3</b><br>                   Battery: <span style='color:#00E676;'>███████░░░ 78%</span><br>                   <small style='color:#888;'>19.0850, 72.8850</small>                 </div>                 </div>`)[0];
+                popup_8d3b174f15b8d855f4010ad35463619f.setContent(html_99ea0ebb4b089ca8ccd25a25b8616642);
+            
+        
+
+        marker_a28d3368831535e514b5edc4f641c848.bindPopup(popup_8d3b174f15b8d855f4010ad35463619f)
+        ;
+
+        
+    
+    
+            marker_a28d3368831535e514b5edc4f641c848.bindTooltip(
+                `<div>
+                     🚁 Drone Alpha — 78%
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_a28d3368831535e514b5edc4f641c848.setIcon(div_icon_ee21c56b8f491fd47925c0f54977ff0f);
+            
+    
+            var marker_310a11041374d7b81b882e95f6a8e84c = L.marker(
+                [19.11, 72.92],
+                {
+}
+            ).addTo(feature_group_a0e51c0edc23b5290ba42db6df8cac62);
+        
+    
+            var div_icon_46b3efda294a404db13742bf9d0a22b8 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#00E5FF22;\n                    border:2px solid #00E5FF;\n                    border-radius:50%;\n                    width:36px; height:36px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #00E5FF;\n                \u0027\u003e\ud83d\ude81\u003c/div\u003e\n            ",
+  "iconSize": [36, 36],
+  "iconAnchor": [18, 18],
+  "className": "empty",
+});
+        
+    
+        var popup_6ecc0058511b3a0dbedd3f7f3597020e = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_228102e8e80f389c76f490c5a5c8af89 = $(`<div id="html_228102e8e80f389c76f490c5a5c8af89" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:200px;'>                   <b style='color:#00E5FF;font-size:14px;'>🚁 DRONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Drone Beta</b><br>                   Status: <b>Idle — Ready</b><br>                   Battery: <span style='color:#00E676;'>██████████ 100%</span><br>                   <small style='color:#888;'>19.1100, 72.9200</small>                 </div>                 </div>`)[0];
+                popup_6ecc0058511b3a0dbedd3f7f3597020e.setContent(html_228102e8e80f389c76f490c5a5c8af89);
+            
+        
+
+        marker_310a11041374d7b81b882e95f6a8e84c.bindPopup(popup_6ecc0058511b3a0dbedd3f7f3597020e)
+        ;
+
+        
+    
+    
+            marker_310a11041374d7b81b882e95f6a8e84c.bindTooltip(
+                `<div>
+                     🚁 Drone Beta — 100%
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_310a11041374d7b81b882e95f6a8e84c.setIcon(div_icon_46b3efda294a404db13742bf9d0a22b8);
+            
+    
+            var marker_f37229469cbf8944267ae95a2f33fb71 = L.marker(
+                [19.045, 72.87],
+                {
+}
+            ).addTo(feature_group_a0e51c0edc23b5290ba42db6df8cac62);
+        
+    
+            var div_icon_80b1125c0a5b7ec5cd0238ed50d933ae = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#00E5FF22;\n                    border:2px solid #00E5FF;\n                    border-radius:50%;\n                    width:36px; height:36px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 12px #00E5FF;\n                \u0027\u003e\ud83d\ude81\u003c/div\u003e\n            ",
+  "iconSize": [36, 36],
+  "iconAnchor": [18, 18],
+  "className": "empty",
+});
+        
+    
+        var popup_6246a13e5fbe050209aa11c57bdbdacf = L.popup({
+  "maxWidth": 240,
+});
+
+        
+            
+                var html_c32c043c7a2a3ae370dd52e024f290a7 = $(`<div id="html_c32c043c7a2a3ae370dd52e024f290a7" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:200px;'>                   <b style='color:#00E5FF;font-size:14px;'>🚁 DRONE</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Drone Gamma</b><br>                   Status: <b>Returning — Low Bat</b><br>                   Battery: <span style='color:#FFD600;'>██░░░░░░░░ 22%</span><br>                   <small style='color:#888;'>19.0450, 72.8700</small>                 </div>                 </div>`)[0];
+                popup_6246a13e5fbe050209aa11c57bdbdacf.setContent(html_c32c043c7a2a3ae370dd52e024f290a7);
+            
+        
+
+        marker_f37229469cbf8944267ae95a2f33fb71.bindPopup(popup_6246a13e5fbe050209aa11c57bdbdacf)
+        ;
+
+        
+    
+    
+            marker_f37229469cbf8944267ae95a2f33fb71.bindTooltip(
+                `<div>
+                     🚁 Drone Gamma — 22%
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_f37229469cbf8944267ae95a2f33fb71.setIcon(div_icon_80b1125c0a5b7ec5cd0238ed50d933ae);
+            
+    
+            feature_group_a0e51c0edc23b5290ba42db6df8cac62.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var marker_aff6372ce70b79f686f33e9dd05d6f82 = L.marker(
+                [19.08, 72.88],
+                {
+}
+            ).addTo(feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c);
+        
+    
+            var div_icon_bdf11cee3c294c424ff6780867de9a4b = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF174433;\n                    border:3px solid #FF1744;\n                    border-radius:50%;\n                    width:38px; height:38px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 16px #FF1744;\n                \u0027\u003e\ud83c\udd98\u003c/div\u003e\n            ",
+  "iconSize": [38, 38],
+  "iconAnchor": [19, 19],
+  "className": "empty",
+});
+        
+    
+        var popup_653f839c967cbbbb1855f96799bbdc5d = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_fd7fa27479eac528367ea93224c8e434 = $(`<div id="html_fd7fa27479eac528367ea93224c8e434" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FF1744;font-size:14px;'>🆘 SOS SIGNAL</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Rashida Bi</b><br>                   Priority: <b style='color:#FF1744;'>CRITICAL</b><br>                   Needs: <b>Medicine + Rescue</b><br>                   Floor: <b>3F</b><br>                   <small style='color:#888;'>19.0800, 72.8800</small>                 </div>                 </div>`)[0];
+                popup_653f839c967cbbbb1855f96799bbdc5d.setContent(html_fd7fa27479eac528367ea93224c8e434);
+            
+        
+
+        marker_aff6372ce70b79f686f33e9dd05d6f82.bindPopup(popup_653f839c967cbbbb1855f96799bbdc5d)
+        ;
+
+        
+    
+    
+            marker_aff6372ce70b79f686f33e9dd05d6f82.bindTooltip(
+                `<div>
+                     🆘 Rashida Bi — CRITICAL
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_aff6372ce70b79f686f33e9dd05d6f82.setIcon(div_icon_bdf11cee3c294c424ff6780867de9a4b);
+            
+    
+            var marker_bacb168b0db98ff199f7008897f0bc95 = L.marker(
+                [19.052, 72.838],
+                {
+}
+            ).addTo(feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c);
+        
+    
+            var div_icon_bb1089e3d7b5075b67ae953fcaea1c72 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF174433;\n                    border:3px solid #FF1744;\n                    border-radius:50%;\n                    width:38px; height:38px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 16px #FF1744;\n                \u0027\u003e\ud83c\udd98\u003c/div\u003e\n            ",
+  "iconSize": [38, 38],
+  "iconAnchor": [19, 19],
+  "className": "empty",
+});
+        
+    
+        var popup_60705d523663c86828d4ce8c6f78eb9b = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_b46ee3c8e4dfcfcd17217316a55742e4 = $(`<div id="html_b46ee3c8e4dfcfcd17217316a55742e4" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FF1744;font-size:14px;'>🆘 SOS SIGNAL</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Family of 4</b><br>                   Priority: <b style='color:#FF1744;'>CRITICAL</b><br>                   Needs: <b>Rescue + Food</b><br>                   Floor: <b>4F</b><br>                   <small style='color:#888;'>19.0520, 72.8380</small>                 </div>                 </div>`)[0];
+                popup_60705d523663c86828d4ce8c6f78eb9b.setContent(html_b46ee3c8e4dfcfcd17217316a55742e4);
+            
+        
+
+        marker_bacb168b0db98ff199f7008897f0bc95.bindPopup(popup_60705d523663c86828d4ce8c6f78eb9b)
+        ;
+
+        
+    
+    
+            marker_bacb168b0db98ff199f7008897f0bc95.bindTooltip(
+                `<div>
+                     🆘 Family of 4 — CRITICAL
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_bacb168b0db98ff199f7008897f0bc95.setIcon(div_icon_bb1089e3d7b5075b67ae953fcaea1c72);
+            
+    
+            var marker_069861aaefea43106453189d5db70dab = L.marker(
+                [19.125, 72.905],
+                {
+}
+            ).addTo(feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c);
+        
+    
+            var div_icon_ce6aa2da174ebd2214e211980f031783 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF6D0033;\n                    border:3px solid #FF6D00;\n                    border-radius:50%;\n                    width:38px; height:38px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 16px #FF6D00;\n                \u0027\u003e\ud83c\udd98\u003c/div\u003e\n            ",
+  "iconSize": [38, 38],
+  "iconAnchor": [19, 19],
+  "className": "empty",
+});
+        
+    
+        var popup_67f1694319d3509170b3e8bff4fbf8c9 = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_11adb28f487c2f1e1b6671726c07f798 = $(`<div id="html_11adb28f487c2f1e1b6671726c07f798" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FF6D00;font-size:14px;'>🆘 SOS SIGNAL</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Elderly Man</b><br>                   Priority: <b style='color:#FF6D00;'>HIGH</b><br>                   Needs: <b>Insulin</b><br>                   Floor: <b>2F</b><br>                   <small style='color:#888;'>19.1250, 72.9050</small>                 </div>                 </div>`)[0];
+                popup_67f1694319d3509170b3e8bff4fbf8c9.setContent(html_11adb28f487c2f1e1b6671726c07f798);
+            
+        
+
+        marker_069861aaefea43106453189d5db70dab.bindPopup(popup_67f1694319d3509170b3e8bff4fbf8c9)
+        ;
+
+        
+    
+    
+            marker_069861aaefea43106453189d5db70dab.bindTooltip(
+                `<div>
+                     🆘 Elderly Man — HIGH
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_069861aaefea43106453189d5db70dab.setIcon(div_icon_ce6aa2da174ebd2214e211980f031783);
+            
+    
+            var marker_8d4035d0b9a0d27fad9a8ebffc3e9665 = L.marker(
+                [19.036, 72.86],
+                {
+}
+            ).addTo(feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c);
+        
+    
+            var div_icon_7834f0f6c5bb1723c45f02de85a78088 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FF6D0033;\n                    border:3px solid #FF6D00;\n                    border-radius:50%;\n                    width:38px; height:38px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 16px #FF6D00;\n                \u0027\u003e\ud83c\udd98\u003c/div\u003e\n            ",
+  "iconSize": [38, 38],
+  "iconAnchor": [19, 19],
+  "className": "empty",
+});
+        
+    
+        var popup_dbf2171857549ee3bcfddd9254e85e3d = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_ccd6537b34c067965b6bc9c846bb9f50 = $(`<div id="html_ccd6537b34c067965b6bc9c846bb9f50" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FF6D00;font-size:14px;'>🆘 SOS SIGNAL</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>3 Children</b><br>                   Priority: <b style='color:#FF6D00;'>HIGH</b><br>                   Needs: <b>Food + Water</b><br>                   Floor: <b>1F</b><br>                   <small style='color:#888;'>19.0360, 72.8600</small>                 </div>                 </div>`)[0];
+                popup_dbf2171857549ee3bcfddd9254e85e3d.setContent(html_ccd6537b34c067965b6bc9c846bb9f50);
+            
+        
+
+        marker_8d4035d0b9a0d27fad9a8ebffc3e9665.bindPopup(popup_dbf2171857549ee3bcfddd9254e85e3d)
+        ;
+
+        
+    
+    
+            marker_8d4035d0b9a0d27fad9a8ebffc3e9665.bindTooltip(
+                `<div>
+                     🆘 3 Children — HIGH
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8d4035d0b9a0d27fad9a8ebffc3e9665.setIcon(div_icon_7834f0f6c5bb1723c45f02de85a78088);
+            
+    
+            var marker_ca59012f2f68270c089e8985b352f71b = L.marker(
+                [19.17, 72.95],
+                {
+}
+            ).addTo(feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c);
+        
+    
+            var div_icon_d3e1c8201929d68da82845b174d92b75 = L.divIcon({
+  "html": "\n                \u003cdiv style=\u0027\n                    font-size:20px;\n                    background:#FFD60033;\n                    border:3px solid #FFD600;\n                    border-radius:50%;\n                    width:38px; height:38px;\n                    display:flex; align-items:center; justify-content:center;\n                    box-shadow:0 0 16px #FFD600;\n                \u0027\u003e\ud83c\udd98\u003c/div\u003e\n            ",
+  "iconSize": [38, 38],
+  "iconAnchor": [19, 19],
+  "className": "empty",
+});
+        
+    
+        var popup_9c7d0af3efeb6f01d96ad522a1a0ebbf = L.popup({
+  "maxWidth": 230,
+});
+
+        
+            
+                var html_b3e8681333e314914426163376da537d = $(`<div id="html_b3e8681333e314914426163376da537d" style="width: 100.0%; height: 100.0%;">                 <div style='font-family:monospace;min-width:190px;'>                   <b style='color:#FFD600;font-size:14px;'>🆘 SOS SIGNAL</b><br>                   <hr style='border-color:#333;margin:4px 0'>                   <b>Mohan Patil</b><br>                   Priority: <b style='color:#FFD600;'>MEDIUM</b><br>                   Needs: <b>Rescue</b><br>                   Floor: <b>2F</b><br>                   <small style='color:#888;'>19.1700, 72.9500</small>                 </div>                 </div>`)[0];
+                popup_9c7d0af3efeb6f01d96ad522a1a0ebbf.setContent(html_b3e8681333e314914426163376da537d);
+            
+        
+
+        marker_ca59012f2f68270c089e8985b352f71b.bindPopup(popup_9c7d0af3efeb6f01d96ad522a1a0ebbf)
+        ;
+
+        
+    
+    
+            marker_ca59012f2f68270c089e8985b352f71b.bindTooltip(
+                `<div>
+                     🆘 Mohan Patil — MEDIUM
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_ca59012f2f68270c089e8985b352f71b.setIcon(div_icon_d3e1c8201929d68da82845b174d92b75);
+            
+    
+            feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c.addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+        
+    
+            var layer_control_a98e109aaacb7a72eb7d62eba0504860_layers = {
+                base_layers : {
+                    "cartodbdarkmatter" : tile_layer_9c58b169c711fe22813cbc8719eb8690,
+                },
+                overlays :  {
+                    "\ud83d\udd25 Flood Heatmap" : feature_group_330d6299c8ec1acf4315756e231abfad,
+                    "\ud83d\udee3\ufe0f Routes" : feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6,
+                    "\ud83c\udf0a Flood Zones" : feature_group_8e7a36e5ad34580e7dbd49a8617d87f3,
+                    "\u26a0\ufe0f Danger Zones" : feature_group_0a4d7ddc4556ea3a23dfc724d2737327,
+                    "\ud83c\udfea Vendors" : feature_group_cd8f975073f099401efb132ff1d5b163,
+                    "\ud83d\ude81 Drones" : feature_group_a0e51c0edc23b5290ba42db6df8cac62,
+                    "\ud83c\udd98 SOS Signals" : feature_group_cf16a0450e31a5f1af0b59a1ffe9a79c,
+                },
+            };
+            let layer_control_a98e109aaacb7a72eb7d62eba0504860 = L.control.layers(
+                layer_control_a98e109aaacb7a72eb7d62eba0504860_layers.base_layers,
+                layer_control_a98e109aaacb7a72eb7d62eba0504860_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": false,
+  "autoZIndex": true,
+}
+            ).addTo(map_a47ecbbb8615fdeab6fff015fb7b59a0);
+
+        
+</script>
+</html>
