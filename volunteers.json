@@ -1,0 +1,14 @@
+[
+    {
+      "name": "Rahul",
+      "lat": 19.1136,
+      "lon": 72.8697,
+      "available": true
+    },
+    {
+      "name": "Priya",
+      "lat": 19.1180,
+      "lon": 72.8720,
+      "available": true
+    }
+  ]

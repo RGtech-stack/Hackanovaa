@@ -1,0 +1,5 @@
+[
+    {"name": "River Road", "status": "flooded"},
+    {"name": "Main Street", "status": "open"},
+    {"name": "Bridge Road", "status": "blocked"}
+   ]
