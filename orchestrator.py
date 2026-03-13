@@ -6,6 +6,12 @@ from agents.routing_agent import get_route
 from agents.resource_agent import get_resource
 from agents.communication_agent import send_notification
 
+# SMS MODULES
+from SMS.sms_gateway import receive_sms
+from SMS.ip_location import get_location_from_ip
+from SMS.sms_ip_merge import merge_sms_ip
+from SMS.sos_router import route_sos
+
 
 def run_agents(raw_message, lat=None, lon=None):
 
@@ -91,3 +97,49 @@ def run_agents(raw_message, lat=None, lon=None):
         "resource": resource,
         "notification": notification
     }
+
+
+# =========================
+# SMS ENTRY PIPELINE
+# =========================
+
+def sms_orchestrator():
+
+    print("\n📩 Listening for incoming SMS...")
+
+    # 1️⃣ Receive SMS
+    sms_data = receive_sms()
+
+    if not sms_data:
+        print("No SMS received")
+        return
+
+    message = sms_data["message"]
+    sender_ip = sms_data["ip"]
+
+    print(f"\n📨 SMS RECEIVED: {message}")
+
+    # 2️⃣ Get location from IP
+    lat, lon = get_location_from_ip(sender_ip)
+
+    print(f"\n📍 IP LOCATION: {lat}, {lon}")
+
+    # 3️⃣ Merge SMS + location
+    merged_data = merge_sms_ip(message, lat, lon)
+
+    # 4️⃣ Route SOS message
+    routed_message = route_sos(merged_data)
+
+    # 5️⃣ Run AI agents
+    result = run_agents(routed_message, lat, lon)
+
+    print("\n🚨 FINAL RESPONSE")
+    print(result)
+
+
+# =========================
+# MAIN
+# =========================
+
+if __name__ == "__main__":
+    sms_orchestrator()
