@@ -152,3 +152,69 @@ def add_flood_zone(zone: FloodZone):
     record = {**zone.model_dump(), "id": zid}
     db_zones[zid] = record
     return record
+
+
+# ─────────────────────────────────────────────
+# GPS & NEAREST VENDOR
+# ─────────────────────────────────────────────
+
+def haversine_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Calculate distance in km between two GPS points."""
+    from math import radians, sin, cos, sqrt, atan2
+    
+    R = 6371  # Earth radius in km
+    lat1_rad, lng1_rad = radians(lat1), radians(lng1)
+    lat2_rad, lng2_rad = radians(lat2), radians(lng2)
+    
+    dlat = lat2_rad - lat1_rad
+    dlng = lng2_rad - lng1_rad
+    
+    a = sin(dlat/2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlng/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    
+    return R * c
+
+
+@router.get("/nearest-vendors")
+def get_nearest_vendors(lat: float, lng: float, limit: int = 3):
+    """
+    Find nearest vendors to user location (GPS coordinates).
+    Returns top N closest vendors with distances.
+    """
+    vendors = [e for e in db_events.values() if e["type"] == "vendor"]
+    
+    if not vendors:
+        return {"error": "No vendors found", "vendors": []}
+    
+    # Calculate distance for each vendor
+    vendors_with_dist = []
+    for v in vendors:
+        distance = haversine_distance(lat, lng, v["lat"], v["lng"])
+        vendors_with_dist.append({
+            **v,
+            "distance_km": round(distance, 2)
+        })
+    
+    # Sort by distance and return top N
+    vendors_with_dist.sort(key=lambda x: x["distance_km"])
+    return {
+        "user_location": {"lat": lat, "lng": lng},
+        "count": len(vendors_with_dist[:limit]),
+        "vendors": vendors_with_dist[:limit]
+    }
+
+
+@router.post("/user-location")
+def log_user_location(lat: float, lng: float, label: str = "My Location"):
+    """Log current user GPS location (for internal tracking)."""
+    uid = "USER-" + _id()
+    record = {
+        "id": uid,
+        "type": "user_location",
+        "lat": lat,
+        "lng": lng,
+        "label": label,
+        "created_at": datetime.utcnow().isoformat() + "Z",
+    }
+    # Optional: Store in db_events or separate storage
+    return record

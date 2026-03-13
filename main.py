@@ -8,6 +8,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from events import router as events_router
 from routes import router as routes_router
 
@@ -29,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
+# Register routers (must come BEFORE static files)
 app.include_router(events_router, tags=["Events"])
 app.include_router(routes_router, tags=["Routes"])
 
@@ -39,14 +40,29 @@ def root():
     return {
         "status": "DURN API online ✓",
         "docs":   "http://localhost:8000/docs",
+        "map":    "http://localhost:8000/map_gps.html (with GPS)",
         "endpoints": {
-            "events":      "GET  /map-events",
-            "sos":         "POST /sos",
-            "flood_zones": "GET  /flood-zones",
-            "routes":      "GET  /routes",
-            "directions":  "GET  /routing/directions",
+            "events":          "GET  /map-events",
+            "sos":             "POST /sos",
+            "flood_zones":     "GET  /flood-zones",
+            "routes":          "GET  /routes",
+            "directions":      "GET  /routing/directions",
+            "nearest_vendors": "GET  /nearest-vendors?lat=X&lng=Y&limit=N",
+            "user_location":   "POST /user-location?lat=X&lng=Y&label=L",
         }
     }
+
+
+@app.get("/map_gps.html")
+def get_map_gps():
+    """Serve GPS-enabled disaster map"""
+    return FileResponse("map_gps.html", media_type="text/html")
+
+
+@app.get("/disaster_map.html")
+def get_disaster_map():
+    """Serve standard disaster map"""
+    return FileResponse("disaster_map.html", media_type="text/html")
 
 
 if __name__ == "__main__":

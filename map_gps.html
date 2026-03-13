@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DURN — Disaster Map with GPS</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        /* ── RESET ── */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; font-family:'Inter',sans-serif; background:#0f172a; }
+
+        /* ── LAYOUT ── */
+        #app { display:grid; grid-template-rows:54px 1fr; height:100vh; }
+
+        /* ── TOP BAR ── */
+        #topbar {
+            background: linear-gradient(90deg, rgba(3,7,18,0.95), rgba(6,10,25,0.95));
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display:flex; align-items:center;
+            padding:0 18px; gap:12px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+            z-index:1000;
+            color: #cfeffd;
+        }
+        .logo {
+            font-weight:800; font-size:18px; color:#e6fbff; letter-spacing:-0.5px;
+            display:flex; align-items:center; gap:8px;
+        }
+        .logo em { color:#60f0d9; font-style:normal; }
+        .sep { width:1px; height:22px; background: rgba(255,255,255,0.04); margin:0 6px; }
+        .alert-pill {
+            background: rgba(255,20,65,0.08); border: 1px solid rgba(255,20,65,0.18);
+            color:#ff8a9a; font-size:11px; font-weight:700;
+            padding:6px 12px; border-radius:18px; letter-spacing:1px;
+            animation:blink 2s step-end infinite; white-space:nowrap;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 55%{opacity:.2} }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 0.8;
+            }
+        }
+        
+        .chips { display:flex; gap:8px; margin-left:auto; align-items:center; }
+        .chip {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.04);
+            font-size:12px; font-weight:600; color:#cfeffd;
+            padding:6px 12px; border-radius:14px;
+            display:flex; align-items:center; gap:8px;
+            backdrop-filter: blur(6px);
+        }
+        .chip.active { background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(16,185,129,0.08)); border-color: rgba(16,185,129,0.28); color:#a7f3d0; }
+
+        /* ── MAP ── */
+        #map { 
+            height: calc(100vh - 54px); 
+            margin-right: 270px;
+        }
+
+        /* ── SIDE PANEL ── */
+        .side-panel {
+            position: fixed;
+            top: 54px;
+            right: 0;
+            width: 270px;
+            height: calc(100vh - 54px);
+            background: rgba(15, 23, 42, 0.98);
+            border-left: 1px solid rgba(0, 229, 255, 0.2);
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #c8d8e8;
+            overflow-y: auto;
+            z-index: 500;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
+        }
+        .side-panel.hidden { display: none; }
+
+        .panel-title {
+            color: #7ef0ff;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            display:flex; align-items:center; justify-content:space-between;
+        }
+
+        .location-info {
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 11px;
+        }
+
+        .vendor-item {
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .vendor-item:hover {
+            background: rgba(0, 230, 118, 0.2);
+            border-color: rgba(0, 230, 118, 0.6);
+        }
+
+        .vendor-name {
+            color: #00e676;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .vendor-detail {
+            color: #888;
+            font-size: 10px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            background: linear-gradient(90deg,#00e5ff,#60f0d9);
+            color: #042023;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .12s ease, box-shadow .12s ease;
+            width: 100%;
+            margin-top: 8px;
+            box-shadow: 0 6px 18px rgba(0,229,255,0.08);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,229,255,0.12); }
+
+        /* ── GPS STATUS ── */
+        .gps-status {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            z-index: 400;
+            background: rgba(5, 8, 14, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #c8d8e8;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .status-label {
+            color: #00e5ff;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-size: 10px;
+            margin-bottom: 8px;
+        }
+
+        .status-item {
+            margin: 6px 0;
+        }
+
+        .status-active { color: #00e676; }
+        .status-inactive { color: #888; }
+        .status-error { color: #ff6b6b; }
+
+        /* ── LEGEND ── */
+        .map-legend {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            z-index: 400;
+            background: rgba(5, 8, 14, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #c8d8e8;
+            backdrop-filter: blur(10px);
+            min-width: 180px;
+        }
+
+        .legend-title {
+            color: #00e5ff;
+            font-weight: bold;
+            letter-spacing: 3px;
+            font-size: 10px;
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            margin: 5px 0;
+        }
+
+        input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="topbar">
+            <div class="logo">DUR<em>N</em>
+                <div style="font-size:10px;color:rgba(230,251,255,0.7);font-weight:600;margin-left:6px;">Disaster Unified Response Network</div>
+            </div>
+            <div class="sep"></div>
+            <div class="alert-pill">⚠ FLOOD ALERT ACTIVE</div>
+            <div class="chips">
+                <div class="chip" id="gps-chip">
+                    📍 <strong style="color:#e6fbff;">GPS:</strong> <span id="gps-status">Searching...</span>
+                </div>
+                <div class="chip" id="vendor-chip">
+                    🏪 <strong style="color:#e6fbff;">Vendors:</strong> <span id="vendor-count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="side-panel" id="sidePanel">
+        <div class="panel-title">YOUR LOCATION</div>
+        <div class="location-info" id="locationInfo">
+            Requesting GPS...
+        </div>
+
+        <div class="panel-title">NEAREST VENDOR</div>
+        <div id="nearestVendorInfo" style="background: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.5); border-radius: 6px; padding: 12px; font-size: 11px;">
+            <div style="color: #888;">Searching for vendors...</div>
+        </div>
+
+        <div class="panel-title">MAP LAYERS</div>
+        <div id="layerControls" style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #00e676;">
+                <input type="checkbox" id="showFloodZones" checked style="cursor: pointer;"> 🌊 Flood Zones
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #FF1744;">
+                <input type="checkbox" id="showDangerZones" checked style="cursor: pointer;"> ⚠️ Danger Zones
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #FF1744;">
+                <input type="checkbox" id="showSOS" checked style="cursor: pointer;"> 🆘 SOS Signals
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #00E676;">
+                <input type="checkbox" id="showVendors" checked style="cursor: pointer;"> 🏪 Vendors
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #FFD600;">
+                <input type="checkbox" id="showRoutes" checked style="cursor: pointer;"> 🛣️ Routes
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #00E5FF;">
+                <input type="checkbox" id="showDrones" checked style="cursor: pointer;"> 🚁 Drones
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #FFD600;">
+                <input type="checkbox" id="showVolunteers" checked style="cursor: pointer;"> 👤 Volunteers
+            </label>
+        </div>
+    </div>
+
+    <!-- GPS Status -->
+    <div class="gps-status" id="gpsStatus">
+        <div class="status-label">GPS STATUS</div>
+        <div class="status-item" id="gpsIndicator">🔴 <span class="status-inactive">Waiting for location...</span></div>
+        <div class="status-item">Vendors: <span id="vendorStatusCount" class="status-inactive">0</span></div>
+        <div class="status-item" style="font-size: 9px; color: #888; margin-top: 10px;">Click markers for more info</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+        <div class="legend-title">MAP UI — Legend</div>
+        <div style="font-size:11px;color:#9fbfc9;margin-bottom:8px;">Tap markers for details • Toggle layers in panel</div>
+        <div class="legend-item">📍 <span style="color:#00e5ff;">Your Location</span></div>
+        <div class="legend-item">🌊 <span style="color:#29b6f6;">Flood Zone</span></div>
+        <div class="legend-item">⚠️ <span style="color:#FF1744;">Danger Zone</span></div>
+        <div class="legend-item">🆘 <span style="color:#FF1744;">SOS Signal</span></div>
+        <div class="legend-item">🏪 <span style="color:#00E676;">Vendor Supply</span></div>
+        <div class="legend-item">🚁 <span style="color:#00E5FF;">Drone</span></div>
+        <div class="legend-item">👤 <span style="color:#FFD600;">Volunteer</span></div>
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
+        <div class="legend-item">🟢 <span style="color:#00E676;">Safe Route</span></div>
+        <div class="legend-item">🟡 <span style="color:#FFD600;">Caution Route</span></div>
+        <div class="legend-item">🔴 <span style="color:#FF1744;">Blocked Route</span></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        
+        // Map initialization
+        const map = L.map('map').setView([19.076, 72.877], 13);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Global variables
+        let userLocation = null;
+        let userMarker = null;
+        let vendorMarkers = [];
+        let dangerMarkers = [];
+        let sosMarkers = [];
+        let droneMarkers = [];
+        let volunteerMarkers = [];
+        let floodCircles = [];
+        let routeLines = [];
+        let nearestVendor = null;
+
+        // ─────────────────────────────────────────────
+        // GPS LOCATION REQUEST
+        // ─────────────────────────────────────────────
+        function requestGPSLocation() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        userLocation = { lat: latitude, lng: longitude };
+                        updateUserLocationMarker();
+                        updateLocationPanel();
+                        findNearestVendors();
+                    },
+                    (error) => {
+                        console.error('GPS Error:', error);
+                        updateGPSStatus('error', `Error: ${error.message}`);
+                        // Use fallback location (Mumbai center)
+                        userLocation = { lat: 19.076, lng: 72.877 };
+                        updateLocationPanel();
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                updateGPSStatus('error', 'Geolocation not supported');
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // UPDATE USER LOCATION MARKER
+        // ─────────────────────────────────────────────
+        function updateUserLocationMarker() {
+            if (userMarker) {
+                userMarker.setLatLng([userLocation.lat, userLocation.lng]);
+            } else {
+                const icon = L.divIcon({
+                    html: `
+                        <div style='
+                            font-size: 18px;
+                            background: rgba(0,229,255,0.15);
+                            border: 2px solid #00e5ff;
+                            border-radius: 50%;
+                            width: 28px;
+                            height: 28px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 0 8px rgba(0,229,255,0.6);
+                            animation: pulse 2s infinite;
+                        '>
+                            📍
+                        </div>
+                    `,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14],
+                    className: 'user-marker'
+                });
+
+                userMarker = L.marker([userLocation.lat, userLocation.lng], { icon })
+                    .addTo(map)
+                    .bindPopup(`<div style='font-family: monospace; color: #00e5ff;'>
+                        <b>Your Location</b><br>
+                        Lat: ${userLocation.lat.toFixed(4)}<br>
+                        Lng: ${userLocation.lng.toFixed(4)}
+                    </div>`);
+            }
+
+            updateGPSStatus('active', 'Located');
+            map.setView([userLocation.lat, userLocation.lng], 13);
+        }
+
+        // ─────────────────────────────────────────────
+        // FETCH ALL MAP EVENTS
+        // ─────────────────────────────────────────────
+        async function fetchMapEvents() {
+            try {
+                const response = await fetch(`${API_BASE}/map-events`);
+                const data = await response.json();
+                return data.events || [];
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                return [];
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // DISPLAY MAP EVENTS (Floods, Dangers, SOS, etc.)
+        // ─────────────────────────────────────────────
+        async function displayMapEvents() {
+            const events = await fetchMapEvents();
+            const floodZones = await fetchFloodZones();
+
+            // Display flood zones with circles
+            displayFloodZones(floodZones);
+
+            // Display events
+            events.forEach(event => {
+                let icon, color, emoji, markers;
+
+                switch (event.type) {
+                    case 'flood':
+                        return; // Handled by flood zones
+                    case 'danger':
+                        emoji = '⚠️';
+                        color = '#FF1744';
+                        markers = dangerMarkers;
+                        icon = L.divIcon({
+                            html: `<div style='font-size: 20px; background: rgba(255,23,68,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1.5px solid ${color}; filter: drop-shadow(0 0 2px rgba(255,23,68,0.4));'>${emoji}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            className: 'marker-danger'
+                        });
+                        break;
+                    case 'sos':
+                        emoji = '🆘';
+                        color = '#FF1744';
+                        markers = sosMarkers;
+                        icon = L.divIcon({
+                            html: `<div style='font-size: 20px; animation: pulse 1s infinite; background: rgba(255,23,68,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1.5px solid ${color}; filter: drop-shadow(0 0 3px rgba(255,23,68,0.5));'>${emoji}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            className: 'marker-sos'
+                        });
+                        break;
+                    case 'vendor':
+                        emoji = '🏪';
+                        color = '#00E676';
+                        markers = vendorMarkers;
+                        icon = L.divIcon({
+                            html: `<div style='font-size: 20px; background: rgba(0,230,118,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1.5px solid ${color}; filter: drop-shadow(0 0 2px rgba(0,230,118,0.4));'>${emoji}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            className: 'marker-vendor'
+                        });
+                        break;
+                    case 'drone':
+                        emoji = '🚁';
+                        color = '#00E5FF';
+                        markers = droneMarkers;
+                        icon = L.divIcon({
+                            html: `<div style='font-size: 20px; background: rgba(0,229,255,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1.5px solid ${color}; filter: drop-shadow(0 0 2px rgba(0,229,255,0.4));'>${emoji}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            className: 'marker-drone'
+                        });
+                        break;
+                    case 'volunteer':
+                        emoji = '👤';
+                        color = '#FFD600';
+                        markers = volunteerMarkers;
+                        icon = L.divIcon({
+                            html: `<div style='font-size: 20px; background: rgba(255,214,0,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1.5px solid ${color}; filter: drop-shadow(0 0 2px rgba(255,214,0,0.4));'>${emoji}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            className: 'marker-volunteer'
+                        });
+                        break;
+                    default:
+                        return;
+                }
+
+                const popupContent = `
+                    <div style='font-family: monospace; width: 200px; color: #c8d8e8;'>
+                        <b style='color: ${color}; font-size: 13px;'>${emoji} ${event.type.toUpperCase()}</b><br>
+                        <hr style='border-color: #333; margin: 4px 0'>
+                        <b style='color: #00e5ff;'>${event.label}</b><br>
+                        Severity: <span style='color: ${color};'>${event.severity.toUpperCase()}</span><br>
+                        ${event.meta ? `<small style='color: #888;'>${JSON.stringify(event.meta)}</small>` : ''}
+                    </div>
+                `;
+
+                const marker = L.marker([event.lat, event.lng], { icon })
+                    .addTo(map)
+                    .bindPopup(popupContent);
+                
+                if (markers) markers.push(marker);
+            });
+
+            // Display routes
+            displayRoutes();
+        }
+
+        // ─────────────────────────────────────────────
+        // FETCH AND DISPLAY FLOOD ZONES
+        // ─────────────────────────────────────────────
+        async function fetchFloodZones() {
+            try {
+                const response = await fetch(`${API_BASE}/flood-zones`);
+                const data = await response.json();
+                return data.zones || [];
+            } catch (error) {
+                console.error('Error fetching flood zones:', error);
+                return [];
+            }
+        }
+
+        function displayFloodZones(zones) {
+            // Draw flood zones as circles only (no polygons)
+            zones.forEach(zone => {
+                // Compute centroid of polygon coords to place the circle
+                const coords = zone.coordinates || [];
+                let centerLat = zone.lat || 0;
+                let centerLng = zone.lng || 0;
+                if (coords.length > 0) {
+                    centerLat = coords.reduce((sum, coord) => sum + coord[0], 0) / coords.length;
+                    centerLng = coords.reduce((sum, coord) => sum + coord[1], 0) / coords.length;
+                }
+
+                const radiusMeters = (zone.depth_cm || 100) * 2.5;
+                const color = zone.severity === 'critical' ? '#FF1744' : zone.severity === 'high' ? '#FF6D00' : '#FFD600';
+
+                const circle = L.circle([centerLat, centerLng], {
+                    radius: radiusMeters,
+                    color: color,
+                    weight: 2,
+                    opacity: 0.9,
+                    fill: true,
+                    fillColor: color,
+                    fillOpacity: 0.18,
+                    className: 'flood-circle'
+                }).addTo(map);
+
+                const popupContent = `
+                    <div style='font-family: monospace; min-width: 200px; color: #c8d8e8;'>
+                        <b style='color: #29b6f6; font-size: 13px;'>🌊 FLOOD ZONE</b><br>
+                        <hr style='border-color: #333; margin: 4px 0'>
+                        <b>${zone.name || 'Flood Area'}</b><br>
+                        Depth: <span style='color: #00e5ff;'>${zone.depth_cm || 'N/A'} cm</span><br>
+                        Radius: <span style='color: #00e5ff;'>${(radiusMeters/1000).toFixed(2)} km</span><br>
+                        Severity: <span style='color: ${color};'>${(zone.severity || '').toUpperCase()}</span>
+                    </div>
+                `;
+
+                circle.bindPopup(popupContent);
+                circle.bindTooltip(`🌊 ${zone.name || 'Flood'} • Depth: ${zone.depth_cm || 'N/A'}cm`, {sticky: true});
+                floodCircles.push(circle);
+            });
+        }
+
+        // ─────────────────────────────────────────────
+        // DISPLAY ROUTES
+        // ─────────────────────────────────────────────
+        async function displayRoutes() {
+            try {
+                const response = await fetch(`${API_BASE}/routes`);
+                const data = await response.json();
+                const routes = data.routes || [];
+
+                routes.forEach(route => {
+                    const color = route.status === 'clear' ? '#00E676' : 
+                                route.status === 'caution' ? '#FFD600' : '#FF1744';
+                    const dashArray = route.status === 'clear' ? null : route.status === 'caution' ? '5, 5' : '2, 3';
+
+                    const line = L.polyline(route.coords, {
+                        color: color,
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: dashArray
+                    }).addTo(map);
+
+                    const popupContent = `
+                        <div style='font-family: monospace; width: 200px; color: #c8d8e8;'>
+                            <b style='color: ${color}; font-size: 13px;'>🛣️ ROUTE</b><br>
+                            <hr style='border-color: #333; margin: 4px 0'>
+                            <b>${route.name}</b><br>
+                            Status: <span style='color: ${color};'>${route.status.toUpperCase()}</span><br>
+                            ${route.note ? `<small style='color: #888;'>${route.note}</small>` : ''}
+                        </div>
+                    `;
+
+                    line.bindPopup(popupContent);
+                    routeLines.push(line);
+                });
+            } catch (error) {
+                console.error('Error fetching routes:', error);
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // FIND NEAREST VENDORS
+        // ─────────────────────────────────────────────
+        async function findNearestVendors() {
+            if (!userLocation) return;
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/nearest-vendors?lat=${userLocation.lat}&lng=${userLocation.lng}&limit=1`
+                );
+                const data = await response.json();
+                const vendors = data.vendors || [];
+
+                document.getElementById('vendor-count').textContent = data.count || 0;
+                document.getElementById('vendorStatusCount').textContent = data.count || 0;
+
+                if (vendors.length > 0) {
+                    displayNearestVendor(vendors[0]);
+                } else {
+                    displayNearestVendor(null);
+                }
+            } catch (error) {
+                console.error('Error finding nearest vendors:', error);
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // DISPLAY NEAREST VENDOR IN SIDE PANEL
+        // ─────────────────────────────────────────────
+        function displayNearestVendor(vendor) {
+            const vendorInfo = document.getElementById('nearestVendorInfo');
+            if (!vendor) {
+                vendorInfo.innerHTML = '<div style="color: #888;">No vendors nearby</div>';
+                return;
+            }
+
+            nearestVendor = vendor;
+            vendorInfo.innerHTML = `
+                <div style='color: #00e676; font-weight: bold; font-size: 12px; margin-bottom: 8px;'>
+                    🏪 ${vendor.label}
+                </div>
+                <div style='color: #888; font-size: 10px; margin: 4px 0;'>
+                    📍 ${vendor.distance_km} km away
+                </div>
+                <div style='color: #888; font-size: 10px; margin: 4px 0;'>
+                    ${vendor.meta?.stock || 'Mixed supplies'}
+                </div>
+                <div style='color: #00e5ff; font-size: 10px; margin-top: 6px;'>
+                    Status: ${vendor.meta?.open ? '✓ Open' : '✕ Closed'}
+                </div>
+            `;
+
+            // Highlight the nearest vendor on map with a glowing effect
+            highlightNearestVendorOnMap(vendor);
+        }
+
+        function highlightNearestVendorOnMap(vendor) {
+            // Create a glowing circle around the vendor
+            const glowCircle = L.circle([vendor.lat, vendor.lng], {
+                radius: 100,
+                color: '#00E676',
+                weight: 1.5,
+                opacity: 0.8,
+                fill: true,
+                fillColor: '#00E676',
+                fillOpacity: 0.12,
+                className: 'vendor-highlight'
+            }).addTo(map);
+
+            // Pulse animation
+            let scale = 1;
+            let growing = true;
+            setInterval(() => {
+                scale += growing ? 0.04 : -0.04;
+                if (scale > 1.25) growing = false;
+                if (scale < 1) growing = true;
+                glowCircle.setStyle({ 
+                    opacity: 0.5 + (Math.abs(scale - 1) * 0.4),
+                    fillOpacity: 0.08 + (Math.abs(scale - 1) * 0.15)
+                });
+            }, 50);
+        }
+
+        // ─────────────────────────────────────────────
+        // LAYER TOGGLE CONTROLS
+        // ─────────────────────────────────────────────
+        document.getElementById('showFloodZones').addEventListener('change', (e) => {
+            floodCircles.forEach(circle => {
+                if (e.target.checked) circle.addTo(map);
+                else map.removeLayer(circle);
+            });
+        });
+
+        document.getElementById('showDangerZones').addEventListener('change', (e) => {
+            dangerMarkers.forEach(marker => {
+                if (e.target.checked) marker.addTo(map);
+                else map.removeLayer(marker);
+            });
+        });
+
+        document.getElementById('showSOS').addEventListener('change', (e) => {
+            sosMarkers.forEach(marker => {
+                if (e.target.checked) marker.addTo(map);
+                else map.removeLayer(marker);
+            });
+        });
+
+        document.getElementById('showVendors').addEventListener('change', (e) => {
+            vendorMarkers.forEach(marker => {
+                if (e.target.checked) marker.addTo(map);
+                else map.removeLayer(marker);
+            });
+        });
+
+        document.getElementById('showDrones').addEventListener('change', (e) => {
+            droneMarkers.forEach(marker => {
+                if (e.target.checked) marker.addTo(map);
+                else map.removeLayer(marker);
+            });
+        });
+
+        document.getElementById('showVolunteers').addEventListener('change', (e) => {
+            volunteerMarkers.forEach(marker => {
+                if (e.target.checked) marker.addTo(map);
+                else map.removeLayer(marker);
+            });
+        });
+
+        document.getElementById('showRoutes').addEventListener('change', (e) => {
+            routeLines.forEach(line => {
+                if (e.target.checked) line.addTo(map);
+                else map.removeLayer(line);
+            });
+        });
+
+        // ─────────────────────────────────────────────
+        // UTILITY FUNCTIONS
+        // ─────────────────────────────────────────────
+        function updateLocationPanel() {
+            if (userLocation) {
+                document.getElementById('locationInfo').innerHTML = `
+                    <div style='font-size: 11px;'>
+                        <b style='color: #00e5ff;'>📍 Your Position</b><br>
+                        Latitude: <span style='color: #00e676;'>${userLocation.lat.toFixed(6)}</span><br>
+                        Longitude: <span style='color: #00e676;'>${userLocation.lng.toFixed(6)}</span><br>
+                        <small style='color: #888; margin-top: 6px; display: block;'>
+                            Real-time GPS tracking enabled
+                        </small>
+                    </div>
+                `;
+            }
+        }
+
+        function updateGPSStatus(status, message) {
+            const indicator = document.getElementById('gpsIndicator');
+            let icon = '🔴';
+            let color = 'status-inactive';
+
+            if (status === 'active') {
+                icon = '🟢';
+                color = 'status-active';
+            } else if (status === 'error') {
+                icon = '🔴';
+                color = 'status-error';
+            }
+
+            indicator.innerHTML = `${icon} <span class='${color}'>${message}</span>`;
+        }
+
+        // ─────────────────────────────────────────────
+        // INITIALIZATION
+        // ─────────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            displayMapEvents();
+            requestGPSLocation();
+        });
+    </script>
+</body>
+</html>

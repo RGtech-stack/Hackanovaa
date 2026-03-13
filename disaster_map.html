@@ -48,9 +48,6 @@
                 L_NO_TOUCH = false;
                 L_DISABLE_3D = false;
             </script>
-
-        
-    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
 </head>
 <body>
     
@@ -172,23 +169,79 @@
             );
         
     
-            var heat_map_4f8cb68ed0e8e4d3e0918912cf33e43d = L.heatLayer(
-                [[19.076, 72.8777, 1.0], [19.055, 72.835, 0.7], [19.12, 72.9, 0.4], [19.033, 72.855, 0.7], [19.168, 72.948, 1.0]],
+            // Flood zones with radius based on depth
+            var floodZones = [
                 {
-  "minOpacity": 0.3,
-  "maxZoom": 16,
-  "radius": 40,
-  "blur": 25,
-  "gradient": {
-  0.2: "#29b6f6",
-  0.5: "#FF6D00",
-  0.8: "#FF1744",
-},
-}
-            );
-        
-    
-            heat_map_4f8cb68ed0e8e4d3e0918912cf33e43d.addTo(feature_group_330d6299c8ec1acf4315756e231abfad);
+                    name: "Dharavi",
+                    lat: 19.076,
+                    lng: 72.8777,
+                    depth_cm: 128,
+                    severity: "critical",
+                    color: "#FF1744"
+                },
+                {
+                    name: "Mahim Creek",
+                    lat: 19.055,
+                    lng: 72.835,
+                    depth_cm: 85,
+                    severity: "high",
+                    color: "#FF6D00"
+                },
+                {
+                    name: "Kurla East",
+                    lat: 19.12,
+                    lng: 72.9,
+                    depth_cm: 37,
+                    severity: "medium",
+                    color: "#FFD600"
+                },
+                {
+                    name: "Sion",
+                    lat: 19.033,
+                    lng: 72.855,
+                    depth_cm: 94,
+                    severity: "high",
+                    color: "#FF6D00"
+                },
+                {
+                    name: "Ghatkopar West",
+                    lat: 19.168,
+                    lng: 72.948,
+                    depth_cm: 152,
+                    severity: "critical",
+                    color: "#FF1744"
+                }
+            ];
+
+            // Create circles for each flood zone
+            floodZones.forEach(function(zone) {
+                // Radius in meters: proportional to flood depth (depth_cm * 2.5)
+                var radiusMeters = zone.depth_cm * 2.5;
+                
+                var circle = L.circle([zone.lat, zone.lng], {
+                    radius: radiusMeters,
+                    color: zone.color,
+                    weight: 2,
+                    opacity: 0.8,
+                    fill: true,
+                    fillColor: zone.color,
+                    fillOpacity: 0.25
+                });
+
+                // Create popup with flood details
+                var popupContent = `<div style='font-family:monospace;min-width:200px;'>
+                    <b style='color:${zone.color};font-size:13px;'>🌊 FLOOD ZONE</b><br>
+                    <hr style='border-color:#333;margin:4px 0'>
+                    <b>${zone.name}</b><br>
+                    <b>Depth:</b> ${zone.depth_cm} cm<br>
+                    <b>Radius:</b> ${(radiusMeters/1000).toFixed(2)} km<br>
+                    <b>Severity:</b> <span style='color:${zone.color};'>${zone.severity.toUpperCase()}</span>
+                </div>`;
+                
+                circle.bindPopup(popupContent);
+                circle.bindTooltip(`🌊 ${zone.name} • Depth: ${zone.depth_cm}cm • Radius: ${(radiusMeters/1000).toFixed(2)}km`, {sticky: true});
+                circle.addTo(feature_group_330d6299c8ec1acf4315756e231abfad);
+            });
         
     
             var feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6 = L.featureGroup(
@@ -1498,7 +1551,7 @@
                     "cartodbdarkmatter" : tile_layer_9c58b169c711fe22813cbc8719eb8690,
                 },
                 overlays :  {
-                    "\ud83d\udd25 Flood Heatmap" : feature_group_330d6299c8ec1acf4315756e231abfad,
+                    "\ud83d\udd25 Flood Radius" : feature_group_330d6299c8ec1acf4315756e231abfad,
                     "\ud83d\udee3\ufe0f Routes" : feature_group_69fe9ab0e9e1480ffeb427e5d1f76aa6,
                     "\ud83c\udf0a Flood Zones" : feature_group_8e7a36e5ad34580e7dbd49a8617d87f3,
                     "\u26a0\ufe0f Danger Zones" : feature_group_0a4d7ddc4556ea3a23dfc724d2737327,
